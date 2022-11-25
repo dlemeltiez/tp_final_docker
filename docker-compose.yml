@@ -1,0 +1,70 @@
+
+version: '3'
+
+services:
+    web-nginx-1:
+        image: nginx
+        volumes:
+            - "./docker-web-1/www:/var/www/html"
+            - "./docker-web-1/config:/etc/nginx/conf.d"
+        ports:
+            - "8080:80"
+    php-1:
+        build: ./
+        volumes: 
+            - "./docker-web-1/www:/var/www/html" 
+        
+    web-nginx-2:
+        image: nginx
+        volumes:
+            - "./docker-web-2/www:/var/www/html"
+            - "./docker-web-2/config:/etc/nginx/conf.d"
+        ports:
+            - "8081:80"
+    php-2:
+        build: ./
+        volumes: 
+            - "./docker-web-2/www:/var/www/html" 
+
+    db:
+        image: mysql:5.7
+        volumes:
+            - db_data:/var/lib/mysql
+        ports:
+            - 3306:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: tp
+            MYSQL_USER: tp
+            MYSQL_PASSWORD: tp
+
+    node-1: 
+      image: node:alpine
+      volumes: 
+        - "./docker-web-1/www:/home/node/app"
+      working_dir: /home/node/app
+      command: sh -c "npm install && npm run build"
+
+    node-2: 
+      image: node:alpine
+      volumes: 
+        - "./docker-web-2/www:/home/node/app"
+      working_dir: /home/node/app
+      command: sh -c "npm install && npm run build"
+
+    composer-1:
+      image: composer
+      volumes: 
+        - "./docker-web-1/www:/var/www/html" 
+      working_dir: /var/www/html
+      command: "composer install"
+
+    composer-2:
+      image: composer
+      volumes: 
+        - "./docker-web-2/www:/var/www/html" 
+      working_dir: /var/www/html
+      command: "composer install"
+
+volumes:
+  db_data:
